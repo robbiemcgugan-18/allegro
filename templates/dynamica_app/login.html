@@ -1,0 +1,39 @@
+{% extends 'dynamica_app/base.html' %}
+{% load static %}
+
+{% block title_block %}
+  Login
+{% endblock %}
+
+{% block body_block %}
+  <main>
+    <div class="content-container">
+       <a class="back-btn" href="{% url 'index' %}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+          <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+        </svg>
+      </a>
+      <div class="content">
+        {% if error_message %}
+          <div class="my-2 error">
+            {{ error_message }}
+          </div>
+        {% endif %}
+        <h1>Login</h1>
+        <form id="login_form" method="post" action="{% url 'user_login' %}">
+          {% csrf_token %}
+          <div class="form-label">
+            Username:
+          </div>
+          <input class="form-control" type="text" name="username" value="" size="50"/>
+          <div class="form-label">
+            Password:
+          </div>
+          <input class="form-control" type="password" name="password" value="" size="50"/>
+          <br/>
+          <input id="submit-btn" type="submit" value="Login"/>
+        </form>
+      </div>
+    </div>
+  </main>
+{% endblock %}
