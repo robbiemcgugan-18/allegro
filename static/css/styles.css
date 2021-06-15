@@ -75,6 +75,16 @@ h3 {
   box-shadow: 0px 1px 18px #24c64f;
 }
 
+#delete-button {
+	background: none;
+	color: red;
+	border: none;
+	padding: 0;
+	font: inherit;
+	cursor: pointer;
+	outline: inherit;
+}
+
 /*
 Styles the links in the lists on the main pages
 */
@@ -117,18 +127,23 @@ p {
   height: 60px;
 }
 
+#part-data {
+  font-weight: bold;
+}
+
 .login-form-label {
   text-align: left;
   padding-top: 10px;
   padding-bottom: 0;
 }
 
-.error {
+.error, .errorlist {
   background-color: #ffbaba;
   color: #D8000C;
   border: solid 1px #000000;
   padding: 20px;
   border-radius: 20px;
+  list-style-type: none;
 }
 
 .menu-container {
@@ -169,11 +184,25 @@ p {
     text-align: right;
     padding-right: 40px;
   }
+
+  #part-container {
+    border: 1px solid black;
+    width: 600px;
+    margin: 20px;
+  }
+
+
 }
 
 @media (max-width:960px) {
   #admin-menu {
     text-align: center;
+  }
+
+  #part-container {
+    border: 1px solid black;
+    width: 300px;
+    margin: 20px;
   }
 }
 

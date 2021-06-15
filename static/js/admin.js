@@ -6,16 +6,31 @@
 $(document).ready(function(){
     var date = new Date();
     var today = date.getDate();
-    // Set click handlers for DOM elements
+	$("#id_part_format").change(get_part_data);
     $(".right-button").click({date: date}, next_year);
     $(".left-button").click({date: date}, prev_year);
     $(".month").click({date: date}, month_click);
+    $("#add-button").click({date: date}, new_event);
     // Set current month as active
     $(".months-row").children().eq(date.getMonth()).addClass("active-month");
     init_calendar(date);
     var events = check_events(today, date.getMonth()+1, date.getFullYear());
     show_events(events, months[date.getMonth()], today);
 });
+
+function get_part_data() {
+		$.ajax({
+				type: 'GET',
+				url: $('#musicForm').attr('url'),
+				data: {
+					action: 'get',
+					format_name: $(this).val(),
+				},
+				success: function (data) {
+					$("#part-data").html(data)
+				}
+		});
+}
 
 // Initialize the calendar by appending the HTML dates
 function init_calendar(date) {
@@ -115,6 +130,87 @@ function prev_year(event) {
     init_calendar(date);
 }
 
+// Event handler for clicking the new event button
+function new_event(event) {
+    // if a date isn't selected then do nothing
+    if($(".active-date").length===0)
+        return;
+    // remove red error input on click
+    $("input").click(function(){
+        $(this).removeClass("error-input");
+    })
+    // empty inputs and hide events
+    $("#dialog input[type=text]").val('');
+    $("#dialog input[type=number]").val('');
+    $(".events-container").hide(250);
+    $("#dialog").show(250);
+    // Event handler for cancel button
+    $("#cancel-button").click(function() {
+        $("#name").removeClass("error-input");
+        $("#start").removeClass("error-input");
+				$("#end").removeClass("error-input");
+        $("#dialog").hide(250);
+        $(".events-container").show(250);
+    });
+    // Event handler for ok button
+    $("#ok-button").unbind().click({date: event.data.date}, function() {
+        var date = event.data.date;
+        var name = $("#name").val().trim();
+				var location = $("#location").val().trim();
+        var start = $("#start").val();
+				var end = $("#end").val();
+        var day = parseInt($(".active-date").html());
+        // Basic form validation
+        if(name.length === 0) {
+            $("#name").addClass("error-input");
+        }
+        else if(start.length === 0) {
+            $("#start").addClass("error-input");
+        }
+				else if(location.length === 0) {
+            $("#location").addClass("error-input");
+        }
+
+        else {
+            $("#dialog").hide(250);
+            console.log("new event");
+            new_event_json(name, location, start, end, date, day);
+            date.setDate(day);
+            init_calendar(date);
+        }
+    });
+}
+
+// Adds a json event to event_data
+function new_event_json(name, location, start, end, date, day) {
+
+		if (end == "") {
+			end = "";
+		}
+    var event = {
+        "name": name,
+				"location": location,
+        "start": start,
+				"end": end,
+        "year": date.getFullYear(),
+        "month": date.getMonth()+1,
+        "day": day
+    };
+    event_data["events"].push(event);
+
+		event = JSON.stringify(event)
+
+		$.ajax({
+			type: 'GET',
+			url: $('#dialog').attr('url'),
+			data: {
+				event_data: event,
+				action: 'get',
+				task: 'add',
+			},
+		});
+
+}
 
 // Display all events of the selected date in card views
 function show_events(events, month, day) {
@@ -131,29 +227,47 @@ function show_events(events, month, day) {
         $(".events-container").append(event_card);
     }
     else {
-			// Go through and add each event as a card to the events container
-			for(var i=0; i<events.length; i++) {
-					var event_card = $("<div class='event-card'></div>");
-					var event_name = $("<div class='event-name'>"+events[i]["name"]+":</div>");
-					if (events[i]["end"] == null || events[i]["end"] == "") {
-						var event_start_end = $("<div class='event-start-end'>"+events[i]["start"]+"</div>");
-					}
-					else {
-						var event_start_end = $("<div class='event-start-end'>"+events[i]["start"]+" - "+events[i]["end"]+"</div>");
-					}
-					var event_location = $("<div class='event-location'>"+events[i]["location"]+"</div>");
-					$(event_card).append(event_name).append(event_start_end).append(event_location);
-					$(".events-container").append(event_card);
-			}
+        // Go through and add each event as a card to the events container
+        for(var i=0; i<events.length; i++) {
+            var event_card = $("<div class='event-card'></div>");
+            var event_name = $("<div class='event-name'>"+events[i]["name"]+":</div>");
+						if (events[i]["end"] == null || events[i]["end"] == "") {
+							var event_start_end = $("<div class='event-start-end'>"+events[i]["start"]+"</div>");
+						}
+						else {
+							var event_start_end = $("<div class='event-start-end'>"+events[i]["start"]+" - "+events[i]["end"]+"</div>");
+						}
+						var event_location = $("<div class='event-location'>"+events[i]["location"]+"</div>");
+
+						var delete_button = $("<button id='delete-button' class='event-delete' value='"+JSON.stringify(events[i])+"'><svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-x-lg' viewBox='0 0 16 16'><path d='M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z'/></svg></button>");
+            $(event_card).append(event_name).append(event_start_end).append(delete_button).append(event_location);
+            $(".events-container").append(event_card);
+        }
     }
+
+		$(".event-delete").click(function() {
+			$.ajax({
+				type: 'GET',
+				url: $('#dialog').attr('url'),
+				data: {
+					action: 'get',
+					event_data: $(this).attr('value'),
+					task: 'delete',
+				},
+				success: function () {
+					location.reload();
+				}
+			});
+
+	});
 }
 
 // Checks if a specific date has any events
 function check_events(day, month, year) {
     var events = [];
-		var events_json = JSON.parse($('#transfer').attr('value'));
+		var events_json = JSON.parse($("#dialog").attr("value"));
 
-		for(var i=0; i<events_json.length; i++) {
+    for(var i=0; i<events_json.length; i++) {
         var event = events_json[i].fields;
 				event.start = event.start.slice(0,-3);
 				if (event.end != null) {
@@ -166,7 +280,7 @@ function check_events(day, month, year) {
             }
     }
 
-    for(var i=0; i<event_data["events"].length; i++) {
+		for(var i=0; i<event_data["events"].length; i++) {
         var event = event_data["events"][i];
         if(event["day"]===day &&
             event["month"]===month &&
@@ -174,13 +288,13 @@ function check_events(day, month, year) {
                 events.push(event);
             }
     }
+
     return events;
 }
 
 // Given data for events in JSON format
 var event_data = {
-    "events": [
-    ]
+    "events": []
 };
 
 const months = [

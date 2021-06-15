@@ -86,10 +86,8 @@
 		</div>
 	</section>
 </main>
+{% endblock %}
 
-
-<script src="{% static 'js/jquery.min.js' %}"></script>
-<script src="{% static 'js/popper.js' %}"></script>
-<script src="{% static 'js/bootstrap.min.js' %}"></script>
-<script src="{% static 'js/admin_calendar.js' %}"></script>
+{% block extra_scripts %}
+  <script src="{% static 'js/admin.js' %}"></script>
 {% endblock %}

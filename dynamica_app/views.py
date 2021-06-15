@@ -4,9 +4,12 @@ from django.contrib.auth import authenticate, login, logout, update_session_auth
 from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
-from dynamica_app.models import Event
+from dynamica_app.models import Event, PartFormat, Music, Request, UserProfile
 from django.core import serializers
+from dynamica_app.forms import AddMusicForm, RequestForm
 import json
+from django.http import JsonResponse
+from django.contrib import messages
 
 def index(request):
     context_dict = {}
@@ -38,7 +41,7 @@ def user_login(request):
 
             # If the account exists but is disabled, display an error message
             else:
-                context_dict['error_message'] = "Account is disabled"
+                context_dict['error_message'] = "Account is disabled. Please contact Robbie McGugan for further details"
 
         # If an account with the given details does not exist, display an error message
         else:
@@ -70,29 +73,33 @@ def user_logout(request):
 def request_music(request):
     context_dict = {}
 
+    form = RequestForm()
+
+    if request.method == "POST":
+        form = RequestForm(request.POST)
+
+        if form.is_valid():
+            request_form = form.save(commit=False)
+            request_form.user = UserProfile.objects.get(user=request.user.id)
+            request_form.save()
+            return redirect('menu')
+
+    if request.GET.get('action') == 'get':
+        piece_name = request.GET.get('piece_name')
+
+        if piece_name != "":
+            part_format_data = Music.objects.get(name=piece_name).part_format.part_data
+            part_format_list = part_format_data.split(",")
+
+            return render(request, 'dynamica_app/part_dropdown_options.html', {'part_format_list': part_format_list})
+
+    context_dict['form'] = form
+
     return render(request, 'dynamica_app/request_music.html', context=context_dict)
 
 @login_required
 def permission_denied(request):
     return render(request, 'dynamica_app/permission_denied.html')
-
-@login_required
-@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
-def manage_calendar(request):
-    context_dict = {}
-
-    if request.GET.get('action') == 'get':
-        event_data = json.loads(request.GET.get('event_data'))
-        if event_data["end"] == "":
-            event = Event(name=event_data["name"], location=event_data["location"], start=event_data["start"], year=event_data["year"], month=event_data["month"], day=event_data["day"])
-        else:
-            event = Event(name=event_data["name"], location=event_data["location"], start=event_data["start"], end=event_data["end"], year=event_data["year"], month=event_data["month"], day=event_data["day"])
-        event.save()
-
-    events = serializers.serialize("json", Event.objects.all())
-    context_dict["events"] = events
-
-    return render(request, 'dynamica_app/manage_calendar.html', context=context_dict)
 
 @login_required
 def calendar(request):
@@ -104,13 +111,48 @@ def calendar(request):
     return render(request, 'dynamica_app/calendar.html', context=context_dict)
 
 @login_required
-def delete_event(request, name, year, month, day):
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def manage_calendar(request):
     context_dict = {}
 
-    event = Event.objects.filter(name=name, year=year, month=month, day=day)
-    event.delete()
+    if request.GET.get('action') == 'get':
+        event_data = json.loads(request.GET.get('event_data'))
+
+        if request.GET.get('task') == 'add':
+            if event_data["end"] == "":
+                event = Event(name=event_data["name"], location=event_data["location"], start=event_data["start"], year=event_data["year"], month=event_data["month"], day=event_data["day"])
+            else:
+                event = Event(name=event_data["name"], location=event_data["location"], start=event_data["start"], end=event_data["end"], year=event_data["year"], month=event_data["month"], day=event_data["day"])
+            event.save()
+
+        elif request.GET.get('task') == 'delete':
+            print(event_data["day"], event_data["month"], event_data["year"])
+            event = Event.objects.filter(name=event_data["name"], year=event_data["year"], month=event_data["month"], day=event_data["day"])
+            event.delete()
 
     events = serializers.serialize("json", Event.objects.all())
     context_dict["events"] = events
 
     return render(request, 'dynamica_app/manage_calendar.html', context=context_dict)
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def add_music(request):
+    context_dict = {}
+
+    form = AddMusicForm()
+
+    if request.method == "POST":
+        form = AddMusicForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('add_music')
+
+    elif request.GET.get('action') == 'get':
+        part_format_name = request.GET.get('format_name')
+        part_format_data = PartFormat.objects.filter(name=part_format_name)[0].part_data
+        return JsonResponse(part_format_data, safe=False)
+
+
+    context_dict['form'] = form
+    return render(request, 'dynamica_app/add_music.html', context=context_dict)

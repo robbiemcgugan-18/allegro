@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block title_block %}
-  Request Music
+  Add Music
 {% endblock %}
 
 {% block body_block %}
@@ -17,26 +17,31 @@
         {% endfor %}
       </div>
     {% endif %}
-     <a class="back-btn" href="{% url 'menu' %}">
-      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
-        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
-      </svg>
-    </a>
+    <a class="back-btn" href="{% url 'menu' %}">
+     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
+       <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+     </svg>
+   </a>
     <div class="content-padding">
-      <h1>Request a Piece of Music</h1>
-      <form method="post" id="requestForm" url="{% url 'request_music' %}">
+      <h1>Add Music</h1>
+      <form method="post" id="musicForm" url="{% url 'add_music' %}">
         {% csrf_token %}
         {% for field in form %}
           <div class="login-form-label" for="{{ field.auto_id }}">{{ field.label }}</div>
           {{ field }}
         {% endfor %}
+        <div id="part-container" class="alert alert-info" role="alert">
+          <h6>You are offering the following parts for this piece:</h6>
+          <div id="part-data"></div>
+        </div>
         <input id="submit-btn" type="submit" value="Create Piece"/>
       </form>
     </div>
   </div>
 </main>
+
 {% endblock %}
 
 {% block extra_scripts %}
-  <script src="{% static 'js/base.js' %}"></script>
+  <script src="{% static 'js/admin.js' %}"></script>
 {% endblock %}
