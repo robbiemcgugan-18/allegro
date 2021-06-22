@@ -4,18 +4,77 @@
 
 	// Setup the calendar with the current date
 $(document).ready(function(){
-    var date = new Date();
-    var today = date.getDate();
-	$("#id_part_format").change(get_part_data);
-    $(".right-button").click({date: date}, next_year);
-    $(".left-button").click({date: date}, prev_year);
-    $(".month").click({date: date}, month_click);
-    $("#add-button").click({date: date}, new_event);
-    // Set current month as active
-    $(".months-row").children().eq(date.getMonth()).addClass("active-month");
-    init_calendar(date);
-    var events = check_events(today, date.getMonth()+1, date.getFullYear());
-    show_events(events, months[date.getMonth()], today);
+
+		if (window.location.href.endsWith("/manage-calendar/")) {
+			var date = new Date();
+	    var today = date.getDate();
+			$(".right-button").click({date: date}, next_year);
+	    $(".left-button").click({date: date}, prev_year);
+	    $(".month").click({date: date}, month_click);
+	    $("#add-button").click({date: date}, new_event);
+	    $(".months-row").children().eq(date.getMonth()).addClass("active-month");
+	    init_calendar(date);
+	    var events = check_events(today, date.getMonth()+1, date.getFullYear());
+	    show_events(events, months[date.getMonth()], today);
+		}
+
+		else if (window.location.href.endsWith("/add-music/")) {
+				$("#id_part_format").change(get_part_data);
+		}
+
+		else if (window.location.href.endsWith("/view-requests/")) {
+
+			$(".table-button").click(function() {
+
+				$.ajax({
+					type: 'GET',
+					url: '/menu/view-requests/',
+					data: {
+						action: 'get',
+						request_id: $(this).parent().attr('id'),
+					},
+					success: function (json) {
+
+						var not_completed_button = $("<button class='not-completed table-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg></button>");
+						var completed_button = $("<button class='completed table-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg></button>");
+
+						if (json.complete) {
+							$("#" + json.request_id).children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg>");
+							$("#" + json.request_id).children().first().css("color", "green");
+							$("#" + json.request_id).parent().css("background-color", "#39DB80");
+							$("#" + json.request_id).parent().removeClass("False");
+							$("#" + json.request_id).parent().addClass("True");
+						}
+						else {
+							$("#" + json.request_id).children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg>");
+							$("#" + json.request_id).children().first().css("color", "red");
+							$("#" + json.request_id).parent().css("background-color", "");
+							$("#" + json.request_id).parent().removeClass("True");
+							$("#" + json.request_id).parent().addClass("False");
+
+						}
+
+					}
+				});
+			});
+
+		$(".toggle-button").click(function() {
+			if ($(this).attr('value') == 'all') {
+				$(".True").hide();
+				$("#submit-btn").text("All Requests");
+				$("#title").text("Incomplete Requests");
+				$(this).attr('value', 'incomplete')
+			}
+			else {
+				$(".True").show();
+				$("#submit-btn").text("Incomplete Requests");
+				$("#title").text("All Requests");
+				$(this).attr('value', 'all')
+			}
+		});
+
+		}
+
 });
 
 function get_part_data() {
@@ -27,7 +86,7 @@ function get_part_data() {
 					format_name: $(this).val(),
 				},
 				success: function (data) {
-					$("#part-data").html(data)
+					$("#part-data").html(data);
 				}
 		});
 }
@@ -222,7 +281,7 @@ function show_events(events, month, day) {
     if(events.length===0) {
         var event_card = $("<div class='event-card'></div>");
         var event_name = $("<div class='event-name'>There are no events planned for "+month+" "+day+".</div>");
-        $(event_card).css({ "border-left": "10px solid #FF1744" });
+				$(event_card).css({ "border-radius": "20px" });
         $(event_card).append(event_name);
         $(".events-container").append(event_card);
     }
@@ -239,7 +298,8 @@ function show_events(events, month, day) {
 						}
 						var event_location = $("<div class='event-location'>"+events[i]["location"]+"</div>");
 
-						var delete_button = $("<button id='delete-button' class='event-delete' value='"+JSON.stringify(events[i])+"'><svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-x-lg' viewBox='0 0 16 16'><path d='M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z'/></svg></button>");
+						var delete_button = $("<button id='delete-button' class='unstyled-button event-delete' value='"+JSON.stringify(events[i])+"'><svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='currentColor' class='bi bi-x-lg' viewBox='0 0 16 16'><path d='M1.293 1.293a1 1 0 0 1 1.414 0L8 6.586l5.293-5.293a1 1 0 1 1 1.414 1.414L9.414 8l5.293 5.293a1 1 0 0 1-1.414 1.414L8 9.414l-5.293 5.293a1 1 0 0 1-1.414-1.414L6.586 8 1.293 2.707a1 1 0 0 1 0-1.414z'/></svg></button>");
+						$(event_card).css({ "border-radius": "20px" });
             $(event_card).append(event_name).append(event_start_end).append(delete_button).append(event_location);
             $(".events-container").append(event_card);
         }

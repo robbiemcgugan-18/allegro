@@ -27,6 +27,8 @@ urlpatterns = [
     path('menu/calendar/', views.calendar, name='calendar'),
     path('menu/manage-calendar/', views.manage_calendar, name='manage_calendar'),
     path('menu/add-music/', views.add_music, name='add_music'),
+    path('menu/my-requests/', views.my_requests, name='my_requests'),
+    path('menu/view-requests/', views.view_requests, name='view_requests'),
     path('logout/', views.user_logout, name='logout'),
     path('permission-denied/', views.permission_denied, name='permission_denied'),
 ]

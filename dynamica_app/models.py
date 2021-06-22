@@ -43,6 +43,8 @@ class Request(models.Model):
     name = models.ForeignKey(Music, on_delete=models.CASCADE)
     part = models.CharField(max_length=32)
     user = models.ForeignKey(UserProfile, on_delete=models.CASCADE)
+    time = models.DateTimeField(auto_now_add=True)
+    completed = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.user.username} requests: {self.name.name}"

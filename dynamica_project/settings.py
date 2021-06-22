@@ -31,7 +31,7 @@ SECRET_KEY = 'django-insecure-u-6qey7_q!sljwa#ra3s+fv)4y)r*k4*wr(nax)=ykaxr@60z5
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['ba6b75846767.ngrok.io', '803322097e27.ngrok.io', '127.0.0.1']
+ALLOWED_HOSTS = ['3ad247e91d9f.ngrok.io', '127.0.0.1']
 
 LOGIN_URL = 'user_login'
 
@@ -114,7 +114,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Europe/London'
 
 USE_I18N = True
 

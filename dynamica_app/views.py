@@ -82,7 +82,8 @@ def request_music(request):
             request_form = form.save(commit=False)
             request_form.user = UserProfile.objects.get(user=request.user.id)
             request_form.save()
-            return redirect('menu')
+            context_dict['success_message'] = "Successfully requested a piece of music. You can view this request in My Requests."
+
 
     if request.GET.get('action') == 'get':
         piece_name = request.GET.get('piece_name')
@@ -146,13 +147,43 @@ def add_music(request):
         form = AddMusicForm(request.POST)
         if form.is_valid():
             form.save()
-            return redirect('add_music')
+            context_dict['success_message'] = "Successfully created new piece of music"
 
     elif request.GET.get('action') == 'get':
         part_format_name = request.GET.get('format_name')
         part_format_data = PartFormat.objects.filter(name=part_format_name)[0].part_data
         return JsonResponse(part_format_data, safe=False)
 
-
     context_dict['form'] = form
     return render(request, 'dynamica_app/add_music.html', context=context_dict)
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def view_requests(request):
+    context_dict = {}
+
+    if request.GET.get('action') == 'get':
+        request_id = request.GET.get('request_id')
+        req = Request.objects.get(id=request_id)
+
+        if req.completed == True:
+            req.completed = False
+            req.save()
+        else:
+            req.completed = True
+            req.save()
+
+        return JsonResponse({'request_id': request_id, 'complete': req.completed})
+
+    context_dict['requests'] = Request.objects.all().order_by('-time')
+
+    return render(request, 'dynamica_app/view_requests.html', context=context_dict)
+
+@login_required
+def my_requests(request):
+    context_dict = {}
+
+    requests = Request.objects.filter(user=request.user.id).order_by('-time')
+    context_dict['requests'] = requests
+
+    return render(request, 'dynamica_app/my_requests.html', context=context_dict)

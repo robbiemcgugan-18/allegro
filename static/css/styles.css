@@ -28,8 +28,15 @@ main {
 .content-container {
   background-color: rgba(245,245,245,0.7);
   border-radius: 20px;
-  margin-top: 10%;
   display: inline-block;
+}
+
+.big-top-margin {
+    margin-top: 10%;
+}
+
+.small-top-margin {
+    margin-top: 2%;
 }
 
 .content-padding {
@@ -75,9 +82,8 @@ h3 {
   box-shadow: 0px 1px 18px #24c64f;
 }
 
-#delete-button {
+.unstyled-button {
 	background: none;
-	color: red;
 	border: none;
 	padding: 0;
 	font: inherit;
@@ -114,17 +120,17 @@ p {
 }
 
 #content-wrap {
-  padding-bottom: 60px;
+  padding-bottom: 100px;
 }
 
 #footer {
   position: absolute;
   text-align: center;
   padding-top: 5px;
-  padding-bottom: 15px;
+  padding-bottom: 5px;
   bottom: 0;
   width: 100%;
-  height: 60px;
+  height: 80px;
 }
 
 #part-data {
@@ -140,6 +146,15 @@ p {
 .error, .errorlist {
   background-color: #ffbaba;
   color: #D8000C;
+  border: solid 1px #000000;
+  padding: 20px;
+  border-radius: 20px;
+  list-style-type: none;
+}
+
+.success {
+  background-color: #39DB80;
+  color: green;
   border: solid 1px #000000;
   padding: 20px;
   border-radius: 20px;
@@ -179,6 +194,35 @@ p {
   color: #D8000C;
 }
 
+.completed {
+  color: green;
+}
+
+.not-completed {
+  color: red;
+}
+
+.styled-table tbody tr {
+    border-bottom: 1px solid #dddddd;
+    font-weight: bold;
+    color: #000000;
+    background-color: #f3f3f3;
+}
+
+.styled-table tbody tr:last-of-type {
+    border-bottom: 2px solid #dddddd;
+}
+
+.center {
+  margin-left: auto;
+  margin-right: auto ;
+  margin-top: 10%;
+}
+
+.th-center {
+  text-align: center;
+}
+
 @media (min-width:961px) {
   #admin-menu {
     text-align: right;
@@ -189,6 +233,32 @@ p {
     border: 1px solid black;
     width: 600px;
     margin: 20px;
+  }
+
+  .styled-table {
+      margin: 25px 0;
+      font-size: 1em;
+      min-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      border-radius: 20px;
+  }
+
+  .styled-table thead tr {
+      background-image: linear-gradient(#20bf55, #01baef);
+      color: #ffffff;
+      text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+      padding: 18px 22.5px;
+  }
+
+  .table-button {
+    display: inline;
+    float: right;
+    margin-right: 40px;
+
   }
 
 
@@ -203,6 +273,32 @@ p {
     border: 1px solid black;
     width: 300px;
     margin: 20px;
+  }
+
+  .styled-table {
+      margin: 25px 0;
+      font-size: 0.75em;
+      min-width: 400px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+      border-radius: 20px;
+  }
+
+  .styled-table thead tr {
+      background-image: linear-gradient(#20bf55, #01baef);
+      color: #ffffff;
+      text-align: left;
+  }
+
+  .styled-table th,
+  .styled-table td {
+      padding: 12px 15px;
+  }
+
+  .table-button {
+    display: inline;
+    float: right;
+    margin-right: 20px;
+
   }
 }
 
