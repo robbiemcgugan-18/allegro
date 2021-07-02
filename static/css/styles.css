@@ -137,6 +137,10 @@ p {
   font-weight: bold;
 }
 
+.edit-icon {
+  color: #000000;
+}
+
 .login-form-label {
   text-align: left;
   padding-top: 10px;
@@ -254,13 +258,9 @@ p {
       padding: 18px 22.5px;
   }
 
-  .table-button {
-    display: inline;
-    float: right;
-    margin-right: 40px;
-
+  .groups-help {
+    display: block !important;
   }
-
 
 }
 
@@ -294,11 +294,8 @@ p {
       padding: 12px 15px;
   }
 
-  .table-button {
-    display: inline;
-    float: right;
-    margin-right: 20px;
-
+  .groups-help {
+    display: none !important;
   }
 }
 

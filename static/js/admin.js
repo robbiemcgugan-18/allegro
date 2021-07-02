@@ -30,8 +30,8 @@ $(document).ready(function(){
 					type: 'GET',
 					url: '/menu/view-requests/',
 					data: {
-						action: 'get',
-						request_id: $(this).parent().attr('id'),
+						action: 'completed',
+						request_id: $(this).parent().parent().attr('id'),
 					},
 					success: function (json) {
 
@@ -39,18 +39,18 @@ $(document).ready(function(){
 						var completed_button = $("<button class='completed table-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg></button>");
 
 						if (json.complete) {
-							$("#" + json.request_id).children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg>");
-							$("#" + json.request_id).children().first().css("color", "green");
-							$("#" + json.request_id).parent().css("background-color", "#39DB80");
-							$("#" + json.request_id).parent().removeClass("False");
-							$("#" + json.request_id).parent().addClass("True");
+							$("#" + json.request_id).children().last().children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg>");
+							$("#" + json.request_id).children().last().children().first().css("color", "green");
+							$("#" + json.request_id).css("background-color", "#39DB80");
+
+							if ($(".toggle-button").attr("value") == "incomplete") {
+								$("#" + json.request_id).hide();
+							}
 						}
 						else {
-							$("#" + json.request_id).children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg>");
-							$("#" + json.request_id).children().first().css("color", "red");
-							$("#" + json.request_id).parent().css("background-color", "");
-							$("#" + json.request_id).parent().removeClass("True");
-							$("#" + json.request_id).parent().addClass("False");
+							$("#" + json.request_id).children().last().children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg>");
+							$("#" + json.request_id).children().last().children().first().css("color", "red");
+							$("#" + json.request_id).css("background-color", "");
 
 						}
 
@@ -59,19 +59,87 @@ $(document).ready(function(){
 			});
 
 		$(".toggle-button").click(function() {
-			if ($(this).attr('value') == 'all') {
-				$(".True").hide();
-				$("#submit-btn").text("All Requests");
-				$("#title").text("Incomplete Requests");
-				$(this).attr('value', 'incomplete')
-			}
-			else {
-				$(".True").show();
-				$("#submit-btn").text("Incomplete Requests");
-				$("#title").text("All Requests");
-				$(this).attr('value', 'all')
-			}
+			$.ajax({
+				type: 'GET',
+				url: '/menu/view-requests/',
+				data: {
+					action: 'get_requests',
+					state: $(this).attr('value'),
+				},
+				success: function(json) {
+					var requests = JSON.parse(json.requests);
+
+					$("tbody tr").each(function(index) {
+						if (json.state == "incomplete") {
+							$(this).show();
+						}
+						else {
+							if (requests[index].fields.completed) {
+								$(this).hide();
+							}
+							else {
+								$(this).show();
+							}
+						}
+
+						if (json.state == "incomplete") {
+							$(".toggle-button").text('Incomplete Requests');
+							$("#title").text("All Requests");
+							$(".toggle-button").attr('value', 'all')
+						}
+						else {
+							$(".toggle-button").text('All Requests');
+							$("#title").text("Incomplete Requests");
+							$(".toggle-button").attr('value', 'incomplete')
+						}
+					});
+				}
+			});
 		});
+
+		}
+
+		else if (window.location.href.endsWith("/view-users/")) {
+			$(".active-button").click(function() {
+				$.ajax({
+					type: 'GET',
+					url: '/menu/view-users/',
+					data: {
+						action: 'toggle_active',
+						user_id: $(this).parent().parent().attr('id'),
+					},
+					success: function (json) {
+						var not_completed_button = $("<button class='not-completed active-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg></button>");
+						var completed_button = $("<button class='completed active-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg></button>");
+
+						if (json.active) {
+							$("#" + json.user_id).children('.button-cell').children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg>");
+							$("#" + json.user_id).children('.button-cell').children().first().css("color", "green");
+							$("#" + json.user_id).css("background-color", "");
+
+						}
+						else {
+							$("#" + json.user_id).children('.button-cell').children().first().html("<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-x' viewBox='0 0 16 16'><path d='M4.646 4.646a.5.5 0 0 1 .708 0L8 7.293l2.646-2.647a.5.5 0 0 1 .708.708L8.707 8l2.647 2.646a.5.5 0 0 1-.708.708L8 8.707l-2.646 2.647a.5.5 0 0 1-.708-.708L7.293 8 4.646 5.354a.5.5 0 0 1 0-.708z'/></svg>");
+							$("#" + json.user_id).children('.button-cell').children().first().css("color", "red");
+							$("#" + json.user_id).css("background-color", "#ffbaba");
+
+						}
+
+					}
+					});
+			});
+
+			$(".reset-button").click(function() {
+				$.ajax({
+					type: 'GET',
+					url: '/menu/view-users/',
+					data: {
+						action: 'reset_password',
+						user_id: $(this).parent().parent().attr('id'),
+					},
+				})
+			});
+
 
 		}
 

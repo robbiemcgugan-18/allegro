@@ -29,6 +29,10 @@ urlpatterns = [
     path('menu/add-music/', views.add_music, name='add_music'),
     path('menu/my-requests/', views.my_requests, name='my_requests'),
     path('menu/view-requests/', views.view_requests, name='view_requests'),
+    path('menu/add-user/', views.add_user, name='add_user'),
+    path('menu/view-users/', views.view_users, name='view_users'),
+    path('menu/view-users/<slug:user_slug>/', views.edit_user, name='edit_user'),
+    path('change-password/', views.change_password, name='change_password'),
     path('logout/', views.user_logout, name='logout'),
     path('permission-denied/', views.permission_denied, name='permission_denied'),
 ]

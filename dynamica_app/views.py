@@ -5,11 +5,13 @@ from django.urls import reverse
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.db.models import Q
 from dynamica_app.models import Event, PartFormat, Music, Request, UserProfile
+from django.contrib.auth.models import User
 from django.core import serializers
-from dynamica_app.forms import AddMusicForm, RequestForm
+from dynamica_app.forms import AddMusicForm, RequestForm, UserForm, UserProfileForm, EditUserForm, UserPasswordChangeForm
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib import messages
+from django.db.models import Min, Count
 
 def index(request):
     context_dict = {}
@@ -59,7 +61,12 @@ def menu(request):
     else:
         context_dict['authorised'] = False
 
-    return render(request, 'dynamica_app/landing.html', context=context_dict)
+    user_profile = UserProfile.objects.get(user=request.user)
+
+    if user_profile.default_password:
+        return redirect(reverse('change_password'))
+    else:
+        return render(request, 'dynamica_app/landing.html', context=context_dict)
 
 @login_required
 def user_logout(request):
@@ -162,20 +169,28 @@ def add_music(request):
 def view_requests(request):
     context_dict = {}
 
-    if request.GET.get('action') == 'get':
+    requests = Request.objects.all().order_by('-time')
+
+    if request.GET.get('action') == 'completed':
         request_id = request.GET.get('request_id')
         req = Request.objects.get(id=request_id)
 
         if req.completed == True:
             req.completed = False
-            req.save()
         else:
             req.completed = True
-            req.save()
+
+        req.save()
 
         return JsonResponse({'request_id': request_id, 'complete': req.completed})
 
-    context_dict['requests'] = Request.objects.all().order_by('-time')
+    elif request.GET.get('action') == 'get_requests':
+        requests = serializers.serialize("json", requests)
+        state = request.GET.get('state')
+
+        return JsonResponse({'requests': requests, 'state': state})
+
+    context_dict['requests'] = requests
 
     return render(request, 'dynamica_app/view_requests.html', context=context_dict)
 
@@ -187,3 +202,132 @@ def my_requests(request):
     context_dict['requests'] = requests
 
     return render(request, 'dynamica_app/my_requests.html', context=context_dict)
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def add_user(request):
+    context_dict = {}
+
+    user_form = UserForm()
+    profile_form = UserProfileForm()
+
+    if request.method == "POST":
+        user_form = UserForm(request.POST)
+        profile_form = UserProfileForm(request.POST)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user = user_form.save()
+            user.set_password(user.password)
+            user.save()
+
+            profile = profile_form.save(commit=False)
+            profile.user = user
+            profile.save()
+
+            context_dict['success_message'] = f"Successfully created new user: {user_form.instance.username}"
+
+            user_form = UserForm()
+            profile_form = UserProfileForm()
+
+    context_dict['user_form'] = user_form
+    context_dict['profile_form'] = profile_form
+
+    return render(request, 'dynamica_app/add_user.html', context=context_dict)
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def view_users(request):
+    context_dict = {}
+
+    users = User.objects.all().annotate(first_group=Min('groups'), number_of_groups=Count('groups')).order_by('-is_active', 'first_group', 'number_of_groups', 'last_name')
+
+    users_info = []
+    for user in users:
+        users_info.append((user, UserProfile.objects.get(user=user)))
+
+    if request.GET.get('action') == "toggle_active":
+        user_id = request.GET.get('user_id')
+        user = User.objects.get(id=user_id)
+
+        if user.is_active:
+            user.is_active = False
+        else:
+            user.is_active = True
+
+        user.save()
+
+        return JsonResponse({'user_id': user_id, 'active': user.is_active})
+
+    elif request.GET.get('action') == "reset_password":
+        user_id = request.GET.get('user_id')
+        user = User.objects.get(id=user_id)
+        user_profile = UserProfile.objects.get(user=user)
+
+        user_DOB = user_profile.DOB
+
+        user.set_password(f"dynamica{user_DOB.strftime('%d%m%Y')}")
+        user.save()
+
+        user_profile.default_password = True
+        user_profile.save()
+
+    context_dict['users_info'] = users_info
+
+    return render(request, 'dynamica_app/view_users.html', context=context_dict)
+
+@login_required
+@user_passes_test(lambda u: u.groups.filter(Q(name='Admin') | Q(name='Staff')).exists(), login_url='permission_denied', redirect_field_name=None)
+def edit_user(request, user_slug):
+    context_dict = {}
+
+    user = User.objects.get(username=user_slug)
+    user_profile = UserProfile.objects.get(user=user.id)
+
+    context_dict['user'] = user
+    context_dict['user_profile'] = user_profile
+
+    if request.method == 'POST':
+        user_form = EditUserForm(request.POST, instance=user)
+        profile_form = UserProfileForm(request.POST, instance=user_profile)
+
+        if user_form.is_valid() and profile_form.is_valid():
+            user_form.save()
+            profile_form.save()
+
+            return redirect(reverse('view_users'))
+
+    else:
+        user_form = EditUserForm(request.POST or None, instance=user)
+        profile_form = UserProfileForm(request.POST or None, instance=user_profile)
+
+        context_dict['user_form'] = user_form
+        context_dict['profile_form'] = profile_form
+        context_dict['user_slug'] = user_slug
+
+    return render(request, 'dynamica_app/edit_user.html', context=context_dict)
+
+def change_password(request):
+    context_dict = {}
+
+    if request.method == "POST":
+        form = UserPasswordChangeForm(request.user, request.POST)
+
+        # If the form is valid
+        if form.is_valid():
+            # Save the updated password
+            updated_password = form.save()
+            # Update the password hash
+            update_session_auth_hash(request, updated_password)
+
+            user_profile = UserProfile.objects.get(user=request.user)
+            user_profile.default_password = False
+            user_profile.save()
+
+            # Redirect the user back to the home page
+            return redirect('menu')
+
+    else:
+        form = UserPasswordChangeForm(request.user)
+        context_dict['form'] = form
+
+        return render(request, 'dynamica_app/change_password.html', context=context_dict)

@@ -15,7 +15,7 @@
    </a>
    <div class="content-padding">
      <button id="submit-btn" class="my-4 toggle-button" value="all">Incomplete Requests</button>
-     <h1 id="title">Requests</h1>
+     <h1 id="title">All Requests</h1>
      <table id="table" class="center styled-table">
        <thead>
            <tr>
@@ -28,12 +28,12 @@
        </thead>
        <tbody>
          {% for req in requests %}
-           <tr class="{{ req.completed }}"{% if req.completed %} style="background-color: #39DB80" {% endif %}>
+           <tr id="{{ req.id }}" {% if req.completed %} style="background-color: #39DB80" {% endif %}>
                <td>{{ req.time }}</td>
                <td>{{ req.user }}</td>
                <td>{{ req.name }}</td>
                <td>{{ req.part }}</td>
-               <td id="{{ req.id }}">
+               <td>
                  {% if req.completed %}
                    <button class='completed table-button unstyled-button'><svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' fill='currentColor' class='bi bi-check2' viewBox='0 0 16 16'><path d='M13.854 3.646a.5.5 0 0 1 0 .708l-7 7a.5.5 0 0 1-.708 0l-3.5-3.5a.5.5 0 1 1 .708-.708L6.5 10.293l6.646-6.647a.5.5 0 0 1 .708 0z'/></svg></button>
                  {% else %}

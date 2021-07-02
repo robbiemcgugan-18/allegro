@@ -5,6 +5,8 @@ class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, primary_key=True)
 
     DOB = models.DateField()
+    default_password = models.BooleanField(default=True,blank=True)
+    instrument = models.CharField(max_length=32, choices=[("Trumpet","Trumpet"),("Trombone","Trombone"),("Euphonium","Euphonium"),("French Horn","French Horn"),("Tenor Horn","Tenor Horn"),("Tuba","Tuba")])
     # profilePicture = models.ImageField(upload_to='profile_images/', blank=True)
 
     def __str__(self):
