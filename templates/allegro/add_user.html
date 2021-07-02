@@ -1,14 +1,14 @@
-{% extends 'dynamica_app/base.html' %}
+{% extends 'allegro/base.html' %}
 {% load static %}
 
 {% block title_block %}
-  View Users
+  Add User
 {% endblock %}
 
 {% block body_block %}
 <main>
   <div class="content-container small-top-margin">
-    <a class="back-btn" href="{% url 'view_users' %}">
+    <a class="back-btn" href="{% url 'menu' %}">
      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-arrow-left" viewBox="0 0 16 16">
        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
      </svg>
@@ -33,8 +33,8 @@
           {{ success_message }}
         </div>
       {% endif %}
-      <h1>Edit details of {{ user.first_name }} {{ user.last_name }}</h1>
-      <form method="post" id="editForm" url="{% url 'edit_user' user_slug %}" >
+      <h1>Create a new Allegro User</h1>
+      <form method="post" id="registerForm" url="{% url 'add_user' %}" >
         {% csrf_token %}
         {% for field in user_form %}
           <div class="login-form-label" for="{{ field.auto_id }}">{{ field.label }}</div>
@@ -46,7 +46,7 @@
           <small class="form-text text-muted text-left groups-help">{{ field.help_text }}</small>
           {{ field }}
         {% endfor %}
-        <input id="submit-btn" type="submit" value="Edit User"/>
+        <input id="submit-btn" type="submit" value="Add User"/>
       </form>
     </div>
   </div>
