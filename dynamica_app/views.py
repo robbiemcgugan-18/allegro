@@ -330,4 +330,4 @@ def change_password(request):
         form = UserPasswordChangeForm(request.user)
         context_dict['form'] = form
 
-        return render(request, 'dynamica_app/change_password.html', context=context_dict)
+    return render(request, 'dynamica_app/change_password.html', context=context_dict)
